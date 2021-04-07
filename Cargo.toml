@@ -9,3 +9,10 @@ edition = "2018"
 walkdir = "*"
 twox-hash = "*"
 gumdrop = "*"
+
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true
+codegen-units = 1
+panic = 'abort'

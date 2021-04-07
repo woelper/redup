@@ -102,10 +102,9 @@ fn main() {
     // at this point we have all files ordered by hash, with filenames. Everything with more than one entry is a duplicate.
 
     for entry in db.values() {
-        if entry.len() == 1 {
-            continue;
+        if entry.len() > 1 {
+            duplicate_resolver(entry, opts.relink);
         }
-        duplicate_resolver(entry, opts.relink);
     }
 
 
