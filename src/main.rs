@@ -64,8 +64,8 @@ fn duplicate_resolver(duplicates: &Vec<PathBuf>, destructive: bool) {
 
             for duplicate in dest {
                 println!("\tLinking {:?}", duplicate);
-                fs::remove_file(duplicate);
-                fs::hard_link(source, duplicate);
+                let _ = fs::remove_file(duplicate);
+                let _ = fs::hard_link(source, duplicate);
             }
         }
     }
