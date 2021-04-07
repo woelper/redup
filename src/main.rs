@@ -9,11 +9,12 @@ use std::fs;
 #[derive(Debug, Options)]
 struct MyOptions {
 
-    #[options(free)]
-    free: String,
-
     #[options(help = "Root directory to scan")]
     root: String,
+
+
+    #[options(help = "Enable destructive relinking")]
+    relink: bool,
 
     #[options(help = "Prefer originals if containing this string")]
     resolve_filter: Option<String>,
@@ -104,7 +105,7 @@ fn main() {
         if entry.len() == 1 {
             continue;
         }
-        duplicate_resolver(entry, true);
+        duplicate_resolver(entry, opts.relink);
     }
 
 
