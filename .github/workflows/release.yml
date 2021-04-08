@@ -48,7 +48,7 @@ jobs:
       if: matrix.os == 'ubuntu-18.04'
 
     - name: Cross-compile arm
-      run: cross build --target armv7-unknown-linux-musleabihf --release
+      run: cross build --target armv7-unknown-linux-musleabihf --release -Z strip=symbols
       if: matrix.os == 'ubuntu-18.04'
   
     - name: Build Application
