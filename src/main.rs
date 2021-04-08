@@ -49,6 +49,23 @@ fn hash_file(file: &Path) -> u64{
     hasher.finish()
 }
 
+
+fn link(src: &Path, dest: &Path) {
+    let dest_backup = dest.with_extension("rdup");
+    let _ = fs::rename(dest, &dest_backup);
+    
+    match fs::hard_link(src, dest) {
+        Ok(_) => {
+            let _ = fs::remove_file(dest_backup);
+        },
+        Err(e) => {
+            // Rename back, link failed
+            let _ = fs::rename(dest_backup, dest);
+            eprintln!("Could not link {:?}", e);
+        }
+    }
+}
+
 /// Resolve a duplicate
 fn duplicate_resolver(duplicates: &Vec<PathBuf>, destructive: bool) {
 
@@ -64,8 +81,7 @@ fn duplicate_resolver(duplicates: &Vec<PathBuf>, destructive: bool) {
 
             for duplicate in dest {
                 println!("\tLinking {:?}", duplicate);
-                let _ = fs::remove_file(duplicate);
-                let _ = fs::hard_link(source, duplicate);
+                link(&source, &duplicate);
             }
         }
     }
