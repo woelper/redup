@@ -45,14 +45,30 @@ jobs:
 
     - name: Install cargo cross
       run: cargo install cross
-      if: matrix.os != 'windows-latest'
+      if: matrix.os == 'ubuntu-18.04'
 
+    - name: Cross-compile arm
+      run: cross build --target armv7-unknown-linux-musleabihf --release
+      if: matrix.os == 'ubuntu-18.04'
+  
     - name: Build Application
       run: cargo build --release
 
     - name: Strip Application
       run: cargo strip
       if: matrix.os != 'windows-latest'
+
+    - name: Upload ARM Release
+      if: matrix.os == 'ubuntu-18.04'
+      id: upload-release-asset-arm 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release_job.outputs.upload_url }}
+        asset_path: target/armv7-unknown-linux-musleabihf/release/redup
+        asset_name: redup_armv7
+        asset_content_type: application/zip
 
     - name: Upload Linux Release
       if: matrix.os == 'ubuntu-18.04'
@@ -86,8 +102,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.release_job.outputs.upload_url }}
-        asset_path: target/release/oculante.exe
-        asset_name: oculante.exe
+        asset_path: target/release/redup.exe
+        asset_name: redup.exe
         asset_content_type: application/zip
 
   publish_release:
