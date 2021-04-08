@@ -38,7 +38,12 @@ jobs:
         rust: [stable]
     steps:
     - uses: actions/checkout@v2
-    
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
     - name: Install cargo strip
       run: cargo install cargo-strip
       if: matrix.os != 'windows-latest'
@@ -54,14 +59,14 @@ jobs:
     - name: Build Application
       run: cargo build --release
 
-    - name: Strip Application
-      run: cargo strip
-      if: matrix.os != 'windows-latest'
+    # - name: Strip Application
+    #   run: cargo strip
+    #   if: matrix.os != 'windows-latest'
 
-    - name: Strip ARM
-      # run: cargo strip --target armv7-unknown-linux-musleabihf
-      run: strip target/armv7-unknown-linux-musleabihf/release/redup
-      if: matrix.os == 'ubuntu-18.04'
+    # - name: Strip ARM
+    #   # run: cargo strip --target armv7-unknown-linux-musleabihf
+    #   run: strip target/armv7-unknown-linux-musleabihf/release/redup
+    #   if: matrix.os == 'ubuntu-18.04'
 
     - name: Upload ARM Release
       if: matrix.os == 'ubuntu-18.04'
