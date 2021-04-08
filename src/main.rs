@@ -16,6 +16,9 @@ struct MyOptions {
     #[options(help = "Enable destructive relinking")]
     relink: bool,
 
+    #[options(help = "Perform soft linking")]
+    softlink: bool,
+
     #[options(help = "Prefer originals if containing this string")]
     resolve_filter: Option<String>,
 
@@ -49,12 +52,28 @@ fn hash_file(file: &Path) -> u64{
     hasher.finish()
 }
 
+/// Link a file, optionally as soft link.
+fn link(src: &Path, dest: &Path, soft: bool) -> io::Result<()> {
+    if soft {
+        #[cfg(target_os = "windows")]
+        {
+            std::os::windows::fs::symlink_file(src, dest)
+        }
+        #[cfg(target_family = "unix")]
+        {
+            std::os::unix::fs::symlink(src, dest)
+        }   
+    }
+    else {
+        fs::hard_link(src, dest)
+    }
+}
 
-fn link(src: &Path, dest: &Path) {
+fn safe_link(src: &Path, dest: &Path, soft: bool) {
     let dest_backup = dest.with_extension("rdup");
     let _ = fs::rename(dest, &dest_backup);
     
-    match fs::hard_link(src, dest) {
+    match link(src, dest, soft) {
         Ok(_) => {
             let _ = fs::remove_file(dest_backup);
         },
@@ -67,7 +86,7 @@ fn link(src: &Path, dest: &Path) {
 }
 
 /// Resolve a duplicate
-fn duplicate_resolver(duplicates: &Vec<PathBuf>, destructive: bool) {
+fn duplicate_resolver(duplicates: &Vec<PathBuf>, destructive: bool, softlink: bool) {
 
     // Safeguard against having no duplicates
     if duplicates.len() < 2 {
@@ -81,7 +100,7 @@ fn duplicate_resolver(duplicates: &Vec<PathBuf>, destructive: bool) {
 
             for duplicate in dest {
                 println!("\tLinking {:?}", duplicate);
-                link(&source, &duplicate);
+                safe_link(&source, &duplicate, softlink);
             }
         }
     }
@@ -119,7 +138,7 @@ fn main() {
 
     for entry in db.values() {
         if entry.len() > 1 {
-            duplicate_resolver(entry, opts.relink);
+            duplicate_resolver(entry, opts.relink, opts.softlink);
         }
     }
 
